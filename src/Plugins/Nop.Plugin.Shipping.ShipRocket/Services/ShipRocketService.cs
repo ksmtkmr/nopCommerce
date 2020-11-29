@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Text;
+using Newtonsoft.Json;
 using Nop.Core.Caching;
 
 namespace Nop.Plugin.Shipping.ShipRocket.Services
@@ -11,6 +12,7 @@ namespace Nop.Plugin.Shipping.ShipRocket.Services
     {
         private const string API_URL = "https://apiv2.shiprocket.in/v1/external/";
         private const string AUTH_URL = "auth/login/";
+        private const string CONTENT_TYPE = "application/json";
         private readonly CacheKey _serviceCacheKey = new CacheKey("Nop.plugins.shipping.shiprocket.servicecachekey.{0}");
 
         private readonly IStaticCacheManager _staticCacheManager;
@@ -22,26 +24,29 @@ namespace Nop.Plugin.Shipping.ShipRocket.Services
             _shipRocketSettings = shipRocketSettings;
         }
 
-        string GetToken()
+        public string GetToken()
         {
             var cacheKey = _staticCacheManager.PrepareKeyForShortTermCache(_serviceCacheKey, "token");
 
-            var token = _staticCacheManager.Get<string>(cacheKey, () => SendGetRequest(string.Format($"{API_URL}{AUTH_URL}")));
-            return "";
+            var token = _staticCacheManager.Get<string>(cacheKey, () =>
+                SendPostRequest(string.Format($"{API_URL}{AUTH_URL}"),
+                new { email = _shipRocketSettings.Email, password = _shipRocketSettings.Password }));
+
+            return token;
         }
 
-        protected virtual string SendGetRequest(string apiUrl)
+        protected virtual string SendPostRequest(string url, object postData)
         {
-            var request = WebRequest.Create(apiUrl);
+            var response = string.Empty;
+            using (var client = new WebClient())
+            {
 
-            request.Credentials = new NetworkCredential(_shipRocketSettings.Email, _shipRocketSettings.Password);
-            var resp = request.GetResponse();
+                client.Headers.Add("Content-Type", CONTENT_TYPE);
 
-            using var rs = resp.GetResponseStream();
-            if (rs == null)
-                return string.Empty;
-            using var sr = new StreamReader(rs);
-            return sr.ReadToEnd();
+                response = client.UploadString(url, JsonConvert.SerializeObject(postData));
+            }
+
+            return response;
         }
     }
 }
