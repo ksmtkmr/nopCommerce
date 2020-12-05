@@ -15,7 +15,7 @@ namespace Nop.Plugin.Shipping.ShipRocket.Models
         public string OrderId { get; set; }
 
         /// <summary>
-        /// The date of order creation in yyyy-mm-dd format. Time is an additional option.
+        /// The date of order creation in yyyy-MM-dd HH:mm format. Time is an additional option.
         /// </summary>
         [JsonProperty("order_date")]
         [JsonRequired]
@@ -32,7 +32,7 @@ namespace Nop.Plugin.Shipping.ShipRocket.Models
         /// Id of the desired channel in case particular channel is to be selected.  Deafult is 'Custom'.
         /// </summary>
         [JsonProperty("channel_id")]
-        public int ChannelId { get; set; }
+        public int? ChannelId { get; set; }
 
         /// <summary>
         /// Option to add 'From' field to the shipment. To do this, enter the name in the following format: 'Reseller: [name]'.
