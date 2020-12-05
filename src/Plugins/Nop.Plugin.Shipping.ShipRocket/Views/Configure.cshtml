@@ -1,0 +1,57 @@
+﻿@{
+    Layout = "_ConfigurePlugin";
+}
+
+@using Nop.Plugin.Shipping.ShipRocket
+@model Nop.Plugin.Shipping.ShipRocket.Models.ShipRocketConfiguration
+
+@await Component.InvokeAsync("StoreScopeConfiguration")
+
+<form asp-controller="ShipRocket" asp-action="Configure" method="post">
+    <div class="cards-group">
+        <div class="card card-default">
+            <div class="card-body">
+
+                <h3>Setup Instructions</h3>
+                <ul>
+                    <li>Register or login on the <strong><a href="https://www.shiprocket.in/" target="_blank">ShipRocket</a></strong> site</li>
+                    <li>Click on "API" from the side-bar and create a <strong>API User</strong> with a <strong>Email Id</strong> and <strong>Password</strong></li>
+                    
+                </ul>
+                <hr />
+
+                <div class="form-group row">
+                    <div class="col-md-3">
+                        <nop-override-store-checkbox asp-for="Email_OverrideForStore" asp-input="Email" asp-store-scope="@Model.ActiveStoreScopeConfiguration" />
+                        <nop-label asp-for="Email" />
+                    </div>
+                    <div class="col-md-9">
+                        <nop-editor asp-for="Email" />
+                        <span asp-validation-for="Email"></span>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <div class="col-md-3">
+                        <nop-override-store-checkbox asp-for="Password_OverrideForStore" asp-input="Password" asp-store-scope="@Model.ActiveStoreScopeConfiguration" />
+                        <nop-label asp-for="Password" />
+                    </div>
+                    <div class="col-md-9">
+                        <nop-editor asp-for="Password" asp-value="@Model.Password" />
+                        <span asp-validation-for="Password"></span>
+                    </div>
+                </div>
+
+
+                <div class="form-group row">
+                    <div class="col-md-3">
+                        &nbsp;
+                    </div>
+                    <div class="col-md-9">
+                        <input type="submit" name="save" class="btn btn-primary" value="@T("Admin.Common.Save")" />
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</form>
