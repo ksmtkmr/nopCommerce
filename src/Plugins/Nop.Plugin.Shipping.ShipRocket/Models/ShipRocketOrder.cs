@@ -11,21 +11,18 @@ namespace Nop.Plugin.Shipping.ShipRocket.Models
         /// The order id you want to specify to the order. Max char: 20.  (Avoid passing character values as this contradicts some other API calls).
         /// </summary>
         [JsonProperty("order_id")]
-        [JsonRequired]
         public string OrderId { get; set; }
 
         /// <summary>
         /// The date of order creation in yyyy-MM-dd HH:mm format. Time is an additional option.
         /// </summary>
         [JsonProperty("order_date")]
-        [JsonRequired]
         public string OrderDate { get; set; }
 
         /// <summary>
         /// The pickup location added in your Shiprocket account. This cannot be a new location.
         /// </summary>
         [JsonProperty("pickup_location")]
-        [JsonRequired]
         public string PickupLocation { get; set; }
 
         /// <summary>
@@ -56,7 +53,6 @@ namespace Nop.Plugin.Shipping.ShipRocket.Models
         /// First name of the customer who is billed.
         /// </summary>
         [JsonProperty("billing_customer_name")]
-        [JsonRequired]
         public string BillingCustomerFirstName { get; set; }
 
         /// <summary>
@@ -81,42 +77,36 @@ namespace Nop.Plugin.Shipping.ShipRocket.Models
         /// Billing address city.  Max char: 30.
         /// </summary>
         [JsonProperty("billing_city")]
-        [JsonRequired]
         public string BillingCity { get; set; }
 
         /// <summary>
         /// Pincode of the billing address.
         /// </summary>
         [JsonProperty("billing_pincode")]
-        [JsonRequired]
-        public int BillingPinCode { get; set; }
+        public string BillingPinCode { get; set; }
 
         /// <summary>
         /// Billing address state.
         /// </summary>
         [JsonProperty("billing_state")]
-        [JsonRequired]
         public string BillingState { get; set; }
 
         /// <summary>
         /// Billing address country.
         /// </summary>
         [JsonProperty("billing_country")]
-        [JsonRequired]
         public string BillingCountry { get; set; }
 
         /// <summary>
         /// Email address of the billed customer.
         /// </summary>
         [JsonProperty("billing_email")]
-        [JsonRequired]
         public string BillingEmail { get; set; }
 
         /// <summary>
         /// The phone number of the billing customer.
         /// </summary>
         [JsonProperty("billing_phone")]
-        [JsonRequired]
         public string BillingPhoneNumber { get; set; }
 
         /// <summary>
@@ -129,7 +119,6 @@ namespace Nop.Plugin.Shipping.ShipRocket.Models
         /// Whether the shipping address is the same as billing address. 1 or 'true' for yes and 0 or 'false' for no.
         /// </summary>
         [JsonProperty("shipping_is_billing")]
-        [JsonRequired]
         public bool IsShippingAddressSameAsBilling { get; set; }
 
         /// <summary>
@@ -196,41 +185,36 @@ namespace Nop.Plugin.Shipping.ShipRocket.Models
         /// Phone no. of the shipping customer.
         /// </summary>
         [JsonProperty("shipping_phone")]
-        public long ShippingPhone { get; set; }
+        public string ShippingPhone { get; set; }
 
         /// <summary>
         /// Array containing further fields.
         /// </summary>
         [JsonProperty("order_items")]
-        [JsonRequired]
         public List<ShipRocketOrderItems> OrderItems { get; set; }
 
         /// <summary>
         /// Name of the product.
         /// </summary>
         [JsonProperty("name")]
-        [JsonRequired]
         public string ProductName { get; set; }
 
         /// <summary>
         /// The sku id of the product.
         /// </summary>
         [JsonProperty("sku")]
-        [JsonRequired]
         public string ProductSKU { get; set; }
 
         /// <summary>
         /// No of units that are to be shipped.
         /// </summary>
         [JsonProperty("units")]
-        [JsonRequired]
         public int Quantity { get; set; }
 
         /// <summary>
         /// Selling Price inclusive of GST
         /// </summary>
         [JsonProperty("selling_price")]
-        [JsonRequired]
         public decimal SellingPrice { get; set; }
 
         /// <summary>
@@ -255,7 +239,6 @@ namespace Nop.Plugin.Shipping.ShipRocket.Models
         /// The method of payment. Can be either COD (Cash on delivery) Or Prepaid.
         /// </summary>
         [JsonProperty("payment_method")]
-        [JsonRequired]
         public string PaymentMethod { get; set; }
 
         /// <summary>
@@ -286,35 +269,30 @@ namespace Nop.Plugin.Shipping.ShipRocket.Models
         /// Calculated sub total amount in Rupee after deductions.
         /// </summary>
         [JsonProperty("sub_total")]
-        [JsonRequired]
         public decimal SubTotal { get; set; }
 
         /// <summary>
         /// The length of the item in cms. Must be more than 0.5.
         /// </summary>
         [JsonProperty("length")]
-        [JsonRequired]
         public decimal ProductLength { get; set; }
 
         /// <summary>
         /// The breadth of the item in cms. Must be more than 0.5.
         /// </summary>
         [JsonProperty("breadth")]
-        [JsonRequired]
         public decimal ProductBreadth { get; set; }
 
         /// <summary>
         /// The height of the item in cms. Must be more than 0.5.
         /// </summary>
         [JsonProperty("height")]
-        [JsonRequired]
         public decimal ProductHeight { get; set; }
 
         /// <summary>
         /// The weight of the item in kgs. Must be more than 0.
         /// </summary>
         [JsonProperty("weight")]
-        [JsonRequired]
         public decimal ProductWeight { get; set; }
 
         /// <summary>

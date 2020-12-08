@@ -1,11 +1,11 @@
 ﻿{
   "Group": "Shipping rate computation",
-  "FriendlyName": "ShipStation",
-  "SystemName": "Shipping.ShipStation",
-  "Version": "1.08",
+  "FriendlyName": "ShipRocket",
+  "SystemName": "Shipping.ShipRocket",
+  "Version": "0.08",
   "SupportedVersions": [ "4.40" ],
-  "Author": "nopCommerce team",
+  "Author": "Balaji",
   "DisplayOrder": 1,
-  "FileName": "Nop.Plugin.Shipping.ShipStation.dll",
-  "Description": "This plugin offers shipping rates with ShipStation"
+  "FileName": "Nop.Plugin.Shipping.ShipRocket.dll",
+  "Description": "This plugin offers shipping with ShipRocket"
 }

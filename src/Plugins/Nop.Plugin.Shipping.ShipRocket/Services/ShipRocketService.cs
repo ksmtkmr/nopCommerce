@@ -17,11 +17,12 @@ namespace Nop.Plugin.Shipping.ShipRocket.Services
         //Variable declarations
         private const string API_URL = "https://apiv2.shiprocket.in/v1/external/";
         private const string AUTH_URL = "auth/login/";
-        private const string CREATE_ORDER_URL = "/orders/create/adhoc";
-        private const string CREATE_CHANNEL_SPECIFIC_ORDER_URL = "/orders/create";
-        private const string UPDATE_PICKUP_LOCATION_URL = "/orders/address/pickup";
-        private const string UPDATE_CUSTOMER_ADDRESS_URL = "/orders/address/update";
-        private const string CANCEL_ORDER_URL = "/orders/cancel";
+        private const string CREATE_ORDER_URL = "orders/create/adhoc";
+        private const string CREATE_CHANNEL_SPECIFIC_ORDER_URL = "orders/create";
+        private const string UPDATE_PICKUP_LOCATION_URL = "orders/address/pickup";
+        private const string UPDATE_CUSTOMER_ADDRESS_URL = "orders/address/update";
+        private const string CANCEL_ORDER_URL = "orders/cancel";
+        private const string COURIER_TRACKING_URL = "courier/track/awb/{0}";
         private const string CONTENT_TYPE = "application/json";
         private readonly CacheKey _serviceCacheKey = new CacheKey("Nop.plugins.shipping.shiprocket.servicecachekey.{0}");
 
@@ -132,11 +133,69 @@ namespace Nop.Plugin.Shipping.ShipRocket.Services
             return webResponse.StatusCode == HttpStatusCode.Accepted;
         }
 
+        /// <summary>
+        /// Cancels all orders having the specified order ids
+        /// </summary>
+        /// <param name="orderIds"></param>
+        /// <returns></returns>
         public async Task<bool> CancelOrder(List<int> orderIds)
         {
             var webResponse = await SendPostRequest($"{API_URL}{CANCEL_ORDER_URL}", orderIds, true);
 
             return webResponse.StatusCode == HttpStatusCode.NoContent;
+        }
+
+
+        /// <summary>
+        /// Get Shipment Tracking
+        /// </summary>
+        /// <param name="AwbCode"></param>
+        /// <returns></returns>
+        public async Task<ShipRocketTrackingResponse> GetShipmentTracking(string awbCode)
+        {
+            var webResponse = await SendGetRequest(string.Format($"{API_URL}{COURIER_TRACKING_URL}", awbCode), null, true);
+
+            var shipRocketTracking = JsonConvert.DeserializeObject<ShipRocketTrackingResponse>(webResponse.Data);
+
+            return shipRocketTracking;
+        }
+
+        #region Private Methods
+
+        /// <summary>
+        /// Allows sending a GET Request
+        /// </summary>
+        /// <param name="url"></param>
+        /// <param name="queryParamKeyPairs"></param>
+        /// <param name="includeToken"></param>
+        /// <returns></returns>
+        private async Task<GenericResponse> SendGetRequest(string url, List<KeyValuePair<string,string>> queryParamKeyPairs, bool includeToken = false)
+        {
+            var httpClient = new HttpClient();
+
+            var response = new GenericResponse();
+
+            if (includeToken)
+            {
+                httpClient.DefaultRequestHeaders.Add("Authorization", "Bearer " + GetToken());
+            }
+
+            var queryParams = string.Empty;
+
+            if (queryParamKeyPairs != null)
+            {
+                using var content = new FormUrlEncodedContent(queryParamKeyPairs);
+
+                queryParams = content.ReadAsStringAsync().Result;
+            }
+
+            var httpResponse = await httpClient.GetAsync(url+ queryParams);
+
+            response.Data = await httpResponse.Content.ReadAsStringAsync();
+
+            response.StatusCode = httpResponse.StatusCode;
+
+            return response;
         }
 
         /// <summary>
@@ -146,7 +205,7 @@ namespace Nop.Plugin.Shipping.ShipRocket.Services
         /// <param name="postData"></param>
         /// <param name="includeToken"></param>
         /// <returns></returns>
-        protected async virtual Task<GenericResponse> SendPostRequest(string url, object postData, bool includeToken = false)
+        private async Task<GenericResponse> SendPostRequest(string url, object postData, bool includeToken = false)
         {
             var httpClient = new HttpClient();
 
@@ -175,7 +234,7 @@ namespace Nop.Plugin.Shipping.ShipRocket.Services
         /// <param name="postData"></param>
         /// <param name="includeToken"></param>
         /// <returns></returns>
-        protected virtual async Task<GenericResponse> SendPatchRequest(string url, object postData, bool includeToken = false)
+        private async Task<GenericResponse> SendPatchRequest(string url, object postData, bool includeToken = false)
         {
             var httpClient = new HttpClient();
 
@@ -196,5 +255,7 @@ namespace Nop.Plugin.Shipping.ShipRocket.Services
 
             return response;
         }
+
+        #endregion
     }
 }

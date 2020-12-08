@@ -1,0 +1,117 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Text;
+using Nop.Core.Domain.Common;
+using Nop.Core.Domain.Orders;
+using Nop.Plugin.Shipping.ShipRocket.Models;
+using Nop.Plugin.Shipping.ShipRocket.Services;
+using Nop.Services.Common;
+using Nop.Services.Customers;
+using Nop.Services.Directory;
+using Nop.Services.Events;
+
+namespace Nop.Plugin.Shipping.ShipRocket
+{
+    public class EventConsumer : IConsumer<OrderPlacedEvent>
+    {
+        private readonly IAddressService _addressService;
+        private readonly IStateProvinceService _stateProvinceService;
+        private readonly ICountryService _countryService;
+        private readonly IShipRocketService _shipRocketService;
+
+        public EventConsumer(
+            IAddressService addressService,
+            ICountryService countryService,
+            IStateProvinceService stateProvinceService,
+            IShipRocketService shipRocketService)
+        {
+            _addressService = addressService;
+            _countryService = countryService;
+            _stateProvinceService = stateProvinceService;
+            _shipRocketService = shipRocketService;
+        }
+
+        public void HandleEvent(OrderPlacedEvent eventMessage)
+        {
+            var order = eventMessage.Order;
+
+            var billingAddress = _addressService.GetAddressById(order.BillingAddressId);
+
+            var billingCountryName = string.Empty;
+            if (billingAddress.CountryId.HasValue)
+            {
+                var billingCountry = _countryService.GetCountryById(billingAddress.CountryId.Value);
+                billingCountryName = billingCountry.Name;
+            }
+
+            var billingStateName = string.Empty;
+            if (billingAddress.StateProvinceId.HasValue)
+            {
+                var billingState = _stateProvinceService.GetStateProvinceById(billingAddress.CountryId.Value);
+                billingStateName = billingState.Name;
+            }
+
+
+            var shipRocketOrder = new ShipRocketOrder
+            {
+                BillingAddress = billingAddress.Address1,
+                BillingAddress2 = billingAddress.Address2,
+                BillingPhoneNumber = billingAddress.PhoneNumber,
+                BillingCity = billingAddress.City,
+                BillingCountry = billingCountryName,
+                BillingCustomerFirstName = billingAddress.FirstName,
+                BillingCustomerLastName = billingAddress.LastName,
+                BillingEmail = billingAddress.Email,
+                BillingPinCode = billingAddress.ZipPostalCode,
+                BillingState = billingStateName,
+            };
+
+            if (order.ShippingAddressId.HasValue)
+            {
+                var shippingAddress = _addressService.GetAddressById(order.ShippingAddressId.Value);
+
+                var shippingCountryName = string.Empty;
+                if (shippingAddress.CountryId.HasValue)
+                {
+                    var shippingCountry = _countryService.GetCountryById(shippingAddress.CountryId.Value);
+                    shippingCountryName = shippingCountry.Name;
+                }
+
+                var shippingStateName = string.Empty;
+                if (shippingAddress.StateProvinceId.HasValue)
+                {
+                    var shippingState = _stateProvinceService.GetStateProvinceById(shippingAddress.CountryId.Value);
+                    shippingStateName = shippingState.Name;
+                }
+
+                shipRocketOrder.IsShippingAddressSameAsBilling = false;
+
+                shipRocketOrder.ShippingAddress = shippingAddress.Address1;
+                shipRocketOrder.ShippingAddress2 = shippingAddress.Address2;
+                shipRocketOrder.ShippingCity = shippingAddress.City;
+                shipRocketOrder.ShippingCountry = shippingCountryName;
+                shipRocketOrder.ShippingState = shippingStateName;
+                shipRocketOrder.ShippingCustomerFirstName = shippingAddress.FirstName;
+                shipRocketOrder.ShippingCustomerLastName = shippingAddress.LastName;
+                shipRocketOrder.ShippingEmail = shippingAddress.Email;
+                shipRocketOrder.ShippingPhone = shippingAddress.PhoneNumber;
+                shipRocketOrder.ShippingPinCode = shippingAddress.ZipPostalCode;
+
+                //To Do: Set shipRocketOrder.TransactionCharges
+            }
+            else
+            {
+                shipRocketOrder.IsShippingAddressSameAsBilling = true;
+            }
+
+            shipRocketOrder.SubTotal = order.OrderSubtotalExclTax;
+            shipRocketOrder.TaxPercentage = order.OrderTax;
+            shipRocketOrder.TotalDiscount = order.OrderDiscount;
+
+            var shippingOrderAwaiter = _shipRocketService.CreateOrder(shipRocketOrder);
+            shippingOrderAwaiter.Wait();
+
+            var shipRocketOrderResponse = shippingOrderAwaiter.Result;
+        }
+    }
+}
