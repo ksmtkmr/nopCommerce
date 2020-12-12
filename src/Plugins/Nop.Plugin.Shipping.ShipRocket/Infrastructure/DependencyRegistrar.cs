@@ -9,7 +9,7 @@ using Nop.Plugin.Shipping.ShipRocket.Services;
 
 namespace Nop.Plugin.Shipping.ShipRocket.Infrastructure
 {
-    class DependencyRegistrar : IDependencyRegistrar
+    public class DependencyRegistrar : IDependencyRegistrar
     {
         public int Order => 3;
 
