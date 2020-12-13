@@ -1,6 +1,9 @@
 ﻿
+using System.Linq;
 using System.Threading.Tasks;
+using Nop.Core.Domain.Catalog;
 using Nop.Core.Domain.Orders;
+using Nop.Core.Domain.Shipping;
 using Nop.Core.Infrastructure;
 using Nop.Plugin.Shipping.ShipRocket.Models;
 using Nop.Plugin.Shipping.ShipRocket.Services;
@@ -8,7 +11,9 @@ using Nop.Services.Common;
 using Nop.Services.Directory;
 using Nop.Services.Events;
 using Nop.Services.Orders;
+using Nop.Services.Payments;
 using Nop.Services.Shipping;
+using static Nop.Services.Shipping.GetShippingOptionRequest;
 
 namespace Nop.Plugin.Shipping.ShipRocket
 {
@@ -18,6 +23,7 @@ namespace Nop.Plugin.Shipping.ShipRocket
         private readonly IStateProvinceService _stateProvinceService;
         private readonly ICountryService _countryService;
         private readonly IShipRocketService _shipRocketService;
+        private readonly IPaymentService _paymentService;
         private readonly IShipmentService _shipmentService;
         private readonly IOrderService _orderService;
 
@@ -26,25 +32,28 @@ namespace Nop.Plugin.Shipping.ShipRocket
             ICountryService countryService,
             IStateProvinceService stateProvinceService,
             IShipRocketService shipRocketService,
-            IShipmentService shipmentService,
-            IOrderService orderService)
+            IPaymentService paymentService,
+            IOrderService orderService,
+            IShipmentService shipmentService)
         {
             _addressService = addressService;
             _countryService = countryService;
             _stateProvinceService = stateProvinceService;
             _shipRocketService = shipRocketService;
-            _shipmentService = shipmentService;
+            _paymentService = paymentService;
             _orderService = orderService;
+            _shipmentService = shipmentService;
         }
 
+        /// <summary>
+        /// Executes code when user places order
+        /// </summary>
+        /// <param name="eventMessage"></param>
         public void HandleEvent(OrderPlacedEvent eventMessage)
         {
             var order = eventMessage.Order;
 
-            var shipments = _shipmentService.GetShipmentsByOrderId(order.Id);
-
             var orderItems = _orderService.GetOrderItems(order.Id);
-
 
             var billingAddress = _addressService.GetAddressById(order.BillingAddressId);
 
@@ -64,6 +73,8 @@ namespace Nop.Plugin.Shipping.ShipRocket
 
             for (var i = 0; i < orderItems.Count; i++)
             {
+                var product = _orderService.GetProductByOrderItemId(orderItems[i].Id);
+
                 var shipRocketOrder = new ShipRocketOrder
                 {
                     BillingAddress = billingAddress.Address1,
@@ -76,8 +87,11 @@ namespace Nop.Plugin.Shipping.ShipRocket
                     BillingEmail = billingAddress.Email,
                     BillingPinCode = billingAddress.ZipPostalCode,
                     BillingState = billingStateName,
-                    ProductSKU = orderItems[i].OrderItemGuid.ToString(),
-                    ProductWeight = orderItems[i].ItemWeight.Value,
+                    ProductSKU = product.Sku,
+                    ProductWeight = product.Weight,
+                    ProductHeight = product.Height,
+                    ProductLength = product.Length,
+                    ProductBreadth = product.Width
                 };
 
                 if (order.ShippingAddressId.HasValue)
@@ -119,13 +133,17 @@ namespace Nop.Plugin.Shipping.ShipRocket
                 }
 
                 shipRocketOrder.SubTotal = orderItems[i].PriceExclTax;
-                shipRocketOrder.TaxPercentage = order.OrderTax;
-                shipRocketOrder.TotalDiscount = order.OrderDiscount;
+                shipRocketOrder.TaxPercentage = orderItems[i].PriceInclTax - orderItems[i].PriceExclTax;
+                shipRocketOrder.TotalDiscount = orderItems[i].DiscountAmountExclTax;
 
                 var shipRocketOrderResponse = Task.Run(() => _shipRocketService.CreateOrder(shipRocketOrder)).Result;
-            }
-            
 
+                var shipment = new Shipment
+                {
+                    OrderId = order.Id,
+                    TrackingNumber = shipRocketOrderResponse.AwbCode,
+                };
+            }
         }
     }
 }
