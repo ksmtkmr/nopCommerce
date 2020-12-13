@@ -15,9 +15,7 @@ namespace Nop.Plugin.Shipping.ShipRocket
         /// <param name="endpointRouteBuilder">Route builder</param>
         public void RegisterRoutes(IEndpointRouteBuilder endpointRouteBuilder)
         {
-            //Webhook
-            endpointRouteBuilder.MapControllerRoute("Plugin.Payments.ShipRocket.WebhookHandler", "Plugins/ShipRocket/Webhook",
-                new { controller = "ShipRocket", action = "Webhook" });
+            
         }
 
         public int Priority => 0;
